@@ -6,13 +6,7 @@
 /*   By: seizquie <seizquie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/05/17 15:00:34 by seizquie          #+#    #+#             */
-/*   Updated: 2025/05/17 15:13:25 by seizquie         ###   ########.fr       */
+/*   Updated: 2025/05/19 18:12:44 by seizquie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "pipex.h"
-
-int	open_file(char	*file, int	mode)
-{
-	
-}
