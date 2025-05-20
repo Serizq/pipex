@@ -58,3 +58,13 @@ char	*get_path(char *cmd, char **envp)
 	return (NULL);
 }
 
+void	pipex_error(char *str, int exit_code)
+{
+	int	len;
+
+	len = ft_strlen(str);
+	write(2, str, len);
+	write(2, "\n", 1);
+	exit(exit_code);
+}
+
