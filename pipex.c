@@ -19,13 +19,40 @@ int	open_file(char *file, int mode)
 	if (mode == INFILE)
 		fd = open(file, O_RDONLY);
 	else if (mode == OUTFILE)
-		fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644); // lectura escritura para propietario, solo lectura resto 
+		fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644); // lectura escritura para propietario, solo lectura resto
 	else
 	{
 		return (-1); // Nunca se ejecutará, por el exit en ft_error
 	}
 	if (fd == -1)
-		ft_error("Error opening file\n", 1);
+		pipex_error("Error opening file\n", 1);
 	return (fd);
+}
+
+void	child_one(int *pipefd, char **argv, char **envp, int infile)
+{
+	char	**cmd_args;
+	char	*cmd_path;
+
+	if (dup2(infile, STDIN_FILENO) == -1) // Redirecciona la entrada desde el archivo infile
+		pipex_error("Error duplicating infile\n", 1);
+	if (dup2(pipefd[1], STDOUT_FILENO) == -1) 	// Redirecciona la salida al pipe
+		pipex_error("Error duplicating pipe write end\n", 1);
+	close(pipefd[0]); // Cierra extremos innecesarios del pipe. pipefd[0]No se usa en child_one
+	close(pipefd[1]);
+	close(infile);
+	cmd_args = ft_split(argv[2], ' '); // Divide el comando y busca su path
+	if (!cmd_args)
+		pipex_error("Error splitting command 1\n", 1);
+	cmd_path = get_path(cmd_args[0], envp);
+	if (!cmd_path)
+	{
+		ft_free_array(cmd_args);
+		pipex_error("Command not found (child_one)\n", 127);
+	}
+	execve(cmd_path, cmd_args, envp);
+	ft_free_array(cmd_args); // Si execve falla
+	free(cmd_path);
+	pipex_error("Execution failed (child_one)\n", 126);
 }
 
