@@ -22,8 +22,14 @@
 # include <unistd.h>
 # include <stdlib.h>
 
+//pipex.c
 int	open_file(char *file, int mode);
+void	child_one(int *pipefd, char **argv, char **envp, int infile);
 
+//pipex_utils.c
+char	*ft_getenv(const char *name, char **envp);
+char	*get_path(char *cmd, char **envp);
+void	pipex_error(char *str, int exit_code);
 
 
 
