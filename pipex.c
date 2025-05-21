@@ -56,3 +56,29 @@ void	child_one(int *pipefd, char **argv, char **envp, int infile)
 	pipex_error("Execution failed (child_one)\n", 126);
 }
 
+void	child_two(int *pipefd, char **argv, char **envp, int outfile)
+{
+	char	**cmd_args;
+	char	*cmd_path;
+
+	if(dup2(pipefd[0], STDIN_FILENO) == -1);
+		pipex_error("Error duplicating pipe read end\n", 1);
+	if(dup2(outfile, STDOUT_FILENO) == -1);
+		pipex_error("Error duplicating outfile\n", 1);
+	close(pipefd[1]);
+	close(pipefd[0]);
+	close(outfile);
+	cmd_args = ft_split(argv[3], ' ');
+	if (!cmd_args)
+		pipex_error("Error splitting command 2\n", 1);
+	cmd_path = get_path(cmd_args[0], envp);
+	if (!cmd_path)
+	{
+		ft_free_array(cmd_args);
+		pipex_error("Command not found (child_two)", 127);
+	}
+	execve(cmd_path, cmd_args, envp);
+	ft_free_array(cmd_args);
+	free(cmd_path);
+	pipex_error("Execution failed (child_two)", 126);
+}
