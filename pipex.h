@@ -26,11 +26,18 @@
 int	open_file(char *file, int mode);
 void	child_one(int *pipefd, char **argv, char **envp, int infile);
 void	child_two(int *pipefd, char **argv, char **envp, int outfile);
+int	main(int argc, char **argv, char **envp);
 
 //pipex_utils.c
 char	*ft_getenv(const char *name, char **envp);
 char	*get_path(char *cmd, char **envp);
 void	pipex_error(char *str, int exit_code);
+
+//main_utils.c
+void	fork_child_one(pid_t *pid, int *pipefd, char **argv, char **envp, int infile);
+void	fork_child_two(pid_t *pid, int *pipefd, char **argv, char **envp, int outfile);
+
+
 
 
 
