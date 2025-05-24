@@ -17,10 +17,11 @@
 # define OUTFILE 1
 
 # include "libft/libft.h"
-# include <stdio.h>
 # include <fcntl.h>
 # include <unistd.h>
 # include <stdlib.h>
+# include <sys/wait.h>
+
 
 //pipex.c
 int	open_file(char *file, int mode);
