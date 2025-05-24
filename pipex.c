@@ -35,7 +35,7 @@ void	child_one(int *pipefd, char **argv, char **envp, int infile)
 	char	*cmd_path;
 
 	if (!argv[2] || argv[2][0] == '\0')
-		pipex_error("first empty cmd", 127);
+		pipex_error("First command is empty", 127);
 	if (dup2(infile, STDIN_FILENO) == -1) // Redirecciona la entrada desde el archivo infile
 		pipex_error("Error duplicating infile\n", 1);
 	if (dup2(pipefd[1], STDOUT_FILENO) == -1) 	// Redirecciona la salida al pipe
@@ -64,7 +64,7 @@ void	child_two(int *pipefd, char **argv, char **envp, int outfile)
 	char	*cmd_path;
 
 	if (!argv[3] || argv[3][0] == '\0')
-		pipex_error("second empty cmd", 127);
+		pipex_error("Second command is empty", 127);
 	if(dup2(pipefd[0], STDIN_FILENO) == -1)
 		pipex_error("Error duplicating pipe read end\n", 1);
 	if(dup2(outfile, STDOUT_FILENO) == -1)
@@ -105,8 +105,8 @@ int	main(int argc, char **argv, char **envp)
 		fork_child_two(&child2, pipefd, argv, envp, outfile);
 		close(pipefd[0]);
 		close(pipefd[1]);
-		waitpid(child1, NULL, 0);
-		waitpid(child2, NULL, 0);
+		wait(NULL);
+		wait(NULL);
 		return (0);
 	}
 	else
