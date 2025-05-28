@@ -28,87 +28,83 @@ int	open_file(char *file, int mode)
 		pipex_error("Error opening file\n", 1);
 	return (fd);
 }
-
-void	child_one(int *pipefd, char **argv, char **envp, int infile)
+void	exec_cmd(char *cmd, char **envp)
 {
-	char	**cmd_args;
-	char	*cmd_path;
+	char	*path;
+	char	**split_cmd;
 
-	if (!argv[2] || argv[2][0] == '\0')
-		pipex_error("First command is empty", 127);
-	if (dup2(infile, STDIN_FILENO) == -1) // Redirecciona la entrada desde el archivo infile
-		pipex_error("Error duplicating infile\n", 1);
-	if (dup2(pipefd[1], STDOUT_FILENO) == -1) 	// Redirecciona la salida al pipe
-		pipex_error("Error duplicating pipe write end\n", 1);
-	close(pipefd[0]); // Cierra extremos innecesarios del pipe. pipefd[0]No se usa en child_one
-	close(pipefd[1]);
-	close(infile);
-	cmd_args = ft_split(argv[2], ' '); // Divide el comando y busca su path
-	if (!cmd_args)
-		pipex_error("Error splitting command 1\n", 1);
-	cmd_path = get_path(cmd_args[0], envp);
-	if (!cmd_path)
+	split_cmd = ft_split(cmd, ' ');
+	if (!split_cmd)
+		pipex_error("Error: split failed", 1);
+	path = get_path(split_cmd[0], envp);
+	if (!path)
 	{
-		ft_free_array(cmd_args);
-		pipex_error("Command not found (child_one)\n", 127);
+		ft_putstr_fd("Command not found: ", 2);
+		ft_putendl_fd(split_cmd[0], 2);
+		ft_free_array(split_cmd);
+		exit(127);
 	}
-	execve(cmd_path, cmd_args, envp);
-	ft_free_array(cmd_args); // Si execve falla
-	free(cmd_path);
-	pipex_error("Execution failed (child_one)\n", 126);
+	execve(path, split_cmd, envp);
+	ft_putstr_fd("Error executing command: ", 2);
+	ft_putendl_fd(split_cmd[0], 2);
+	ft_free_array(split_cmd);
+	free(path);
+	exit(126);
 }
 
-void	child_two(int *pipefd, char **argv, char **envp, int outfile)
+void	child_one(int *pipefd, char **argv, char **envp)
 {
-	char	**cmd_args;
-	char	*cmd_path;
+	int	infile;
 
-	if (!argv[3] || argv[3][0] == '\0')
-		pipex_error("Second command is empty", 127);
-	if(dup2(pipefd[0], STDIN_FILENO) == -1)
-		pipex_error("Error duplicating pipe read end\n", 1);
-	if(dup2(outfile, STDOUT_FILENO) == -1)
-		pipex_error("Error duplicating outfile\n", 1);
-	close(pipefd[1]);
+	infile = open(argv[1], O_RDONLY);
+	if (infile < 0)
+		pipex_error("Error opening infile", 1);
+	dup2(infile, 0);
+	dup2(pipefd[1], 1);
 	close(pipefd[0]);
+	close(pipefd[1]);
+	close(infile);
+	exec_cmd(argv[2], envp);
+}
+
+void	child_two(int *pipefd, char **argv, char **envp)
+{
+	int	outfile;
+
+	outfile = open(argv[4], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (outfile < 0)
+		pipex_error("Error opening outfile", 1);
+	dup2(pipefd[0], 0);
+	dup2(outfile, 1);
+	close(pipefd[0]);
+	close(pipefd[1]);
 	close(outfile);
-	cmd_args = ft_split(argv[3], ' ');
-	if (!cmd_args)
-		pipex_error("Error splitting command 2\n", 1);
-	cmd_path = get_path(cmd_args[0], envp);
-	if (!cmd_path)
-	{
-		ft_free_array(cmd_args);
-		pipex_error("Command not found (child_two)", 127);
-	}
-	execve(cmd_path, cmd_args, envp);
-	ft_free_array(cmd_args);
-	free(cmd_path);
-	pipex_error("Execution failed (child_two)", 126);
+	exec_cmd(argv[3], envp);
 }
 
 int	main(int argc, char **argv, char **envp)
 {
-	int	pipefd[2];
-	int	infile;
-	int	outfile;
+	int		pipefd[2];
 	pid_t	child1;
 	pid_t	child2;
 
-	if(argc == 5)
-	{
-		infile = open_file(argv[1], INFILE);
-		outfile = open_file(argv[4], OUTFILE);
-		if(pipe(pipefd) == -1)
-			pipex_error("Error creating pipe\n", 1);
-		fork_child_one(&child1, pipefd, argv, envp, infile);
-		fork_child_two(&child2, pipefd, argv, envp, outfile);
-		close(pipefd[0]);
-		close(pipefd[1]);
-		wait(NULL);
-		wait(NULL);
-		return (0);
-	}
-	else
+	if (argc != 5)
 		pipex_error("Usage: ./pipex infile cmd1 cmd2 outfile", 2);
+	if (pipe(pipefd) == -1)
+		pipex_error("Error creating pipe", 1);
+	child1 = fork();
+	if (child1 == -1)
+		pipex_error("Error forking child_one", 1);
+	if (child1 == 0)
+		child_one(pipefd, argv, envp);
+	child2 = fork();
+	if (child2 == -1)
+		pipex_error("Error forking child_two", 1);
+	if (child2 == 0)
+		child_two(pipefd, argv, envp);
+	close(pipefd[0]);
+	close(pipefd[1]);
+	wait(NULL);
+	wait(NULL);
+	return (0);
 }

@@ -67,4 +67,3 @@ void	pipex_error(char *str, int exit_code)
 	write(2, "\n", 1);
 	exit(exit_code);
 }
-

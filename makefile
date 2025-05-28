@@ -16,14 +16,14 @@ LIBFT = $(LIBFT_DIR)/libft.a
 # Includes para encontrar los headers de pipex y de libft
 INCLUDES = -I. -I$(LIBFT_DIR)
 
-# Colores ANSI para mensajes con estilo en la terminal
+# Colores ANSI para mensajes en la terminal
 GREEN = \033[0;32m
 RED = \033[0;31m
 YELLOW = \033[0;33m
 BLUE = \033[0;34m
 RESET = \033[0m
 
-# Mensajes personalizados con emojis y colores
+# Mensajes personalizados
 MSG_OK = "$(GREEN)✅ Compilado con éxito!$(RESET)"
 MSG_CLEAN = "$(YELLOW)🧹 Limpieza realizada$(RESET)"
 MSG_FCLEAN = "$(RED)💥 Eliminado todo lo que no sirve$(RESET)"
